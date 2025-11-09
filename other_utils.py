@@ -4,7 +4,7 @@ jax.config.update("jax_enable_x64", True)
 
 #multimodal gaussian mixture pdf
 def mixture_pdf_1(x, mu_params, s_params, weights=None):
-    x = jnp.atleast_1d(x)
+    x = jnp.ravel(jnp.atleast_1d(x))
     mu_params = jnp.array(mu_params)
     s_params = jnp.array(s_params)
 

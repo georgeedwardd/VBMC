@@ -1,5 +1,8 @@
+cma==4.4.0
+corner==2.2.3
+emcee==3.1.6
+ipython==8.12.3
 jax==0.4.28
-matplotlib==3.10.6
-numpy==2.3.3
-scikit_learn==1.7.2
-scipy==1.16.1
+matplotlib==3.10.7
+numpy==2.3.4
+scipy==1.16.3

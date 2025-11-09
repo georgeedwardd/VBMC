@@ -98,7 +98,6 @@ def integrate_mixture_1(x_eval, y_eval, s, L, params, weights=None,m0=None,x_m=N
     n_components = len(mu_params)
     x_eval = x_eval.reshape(-1, 1)
     y_eval = y_eval.reshape(-1, 1)
-    L = jnp.diag(L)
     #assume equal weights
     if weights is None:
         weights = jnp.ones(n_components)/n_components
@@ -115,10 +114,6 @@ def integrate_mixture_1(x_eval, y_eval, s, L, params, weights=None,m0=None,x_m=N
     kF = jnp.sum(weights[:, None, None]*kFs, axis=0).reshape(-1, 1)
     
     #mean function integral
-    if m0 is None:
-        m0 = jnp.max(y_eval)
-        x_m = jnp.mean(x_eval, axis=0)
-        w = (jnp.max(x_eval, axis=0) - jnp.min(x_eval, axis=0)) / 2.0
     m = m0 - 0.5*((x_eval - x_m)** 2)/w**2
     M_components = m0 - 0.5*((mu_params - x_m)** 2 + s_params**2)/w**2
     M = jnp.sum(weights*M_components)
@@ -149,6 +144,7 @@ def integrate_mixture_1(x_eval, y_eval, s, L, params, weights=None,m0=None,x_m=N
     var = jnp.squeeze(var)
 
     return mu, var
+
 
 
 
@@ -241,26 +237,19 @@ def Iij_n(i, j, s, L, params):
     return s**2 * det_L * det_factor * exp_factor
 
 ##accept new x,y points and take in old kxx inverse.
-def integrate_mixture_n(x, y, s, L, params, weights=None, m0=None, x_m=None, w=None, chol_k=None):
-    mu_params = jnp.array(params[0])
-    S_params  = jnp.array([jnp.diag(S) for S in params[1]])
+def integrate_mixture_n(x, y, m_params, hp_params, weights=None, chol_k=None):
+    mu_params = jnp.array(m_params[0])
+    S_params  = jnp.array([jnp.diag(S) for S in m_params[1]])
+    s, L, m0, x_m, w, sigma_e = hp_params
 
     n_components, d = mu_params.shape
 
-    x = jnp.atleast_2d(x).astype(jnp.float64)
-    y = jnp.atleast_2d(y).reshape(-1, 1)
+    #x = jnp.atleast_2d(x).astype(jnp.float64)
+    #y = jnp.atleast_2d(y).reshape(-1, 1)
     n_eval = x.shape[0]
 
     L = jnp.diag(L)
-        
-    if weights is None:
-        weights = jnp.ones(n_components) / n_components
-    else:
-        weights = jnp.array(weights) / jnp.sum(weights)
 
-    # GP covariance matrix
-    Kxx = rbf(x, x, s, L)
-    Kxx += 1e-10 * jnp.eye(n_eval)
 
     # cross-covariances
     def comp_vals(mu_j, S_j):
@@ -272,14 +261,7 @@ def integrate_mixture_n(x, y, s, L, params, weights=None, m0=None, x_m=None, w=N
 
     kF = (weights[None, :] * kFs).sum(axis=1).reshape(-1, 1)
 
-    #mean function integral
-    if m0 is None:
-        m0 = jnp.mean(y)
-        x_m = jnp.mean(x, axis=0)
-        w = (jnp.max(x, axis=0) - jnp.min(x, axis=0)) /25.0
 
-    x_m = jnp.asarray(x_m).reshape(-1)
-    w = jnp.asarray(w).reshape(-1)
     m = m0 - 0.5 * jnp.sum(((x - x_m) / w) ** 2, axis=1, keepdims=True)
     M_components = jnp.array([
         m0 - 0.5 * (jnp.sum(((mu_params[j] - x_m) / w) ** 2) + jnp.sum(S_params[j] / (w ** 2)))
@@ -289,6 +271,9 @@ def integrate_mixture_n(x, y, s, L, params, weights=None, m0=None, x_m=None, w=N
 
 
     if chol_k is None:
+        # GP covariance matrix
+        Kxx = rbf(x, x, s, L)
+        Kxx += 1e-10*jnp.eye(n_eval)
         chol_k = jnp.linalg.cholesky(Kxx)
 
     alpha = jax.scipy.linalg.cho_solve((chol_k, True), y - m)
@@ -300,11 +285,11 @@ def integrate_mixture_n(x, y, s, L, params, weights=None, m0=None, x_m=None, w=N
     vv_mix = 0
     for i in range(n_components):
         for j in range(n_components):
-            vv_mix += weights[i]*weights[j]*Iij_n(i,j,s,L, params)
+            vv_mix += weights[i]*weights[j]*Iij_n(i,j,s,L, m_params)
 
     #variance adjustment term
     adjustment = (kF.T @ beta).squeeze()
 
     var = vv_mix - adjustment
     
-    return mu, var, chol_k
+    return mu, var
