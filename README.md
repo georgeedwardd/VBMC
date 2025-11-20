@@ -24,3 +24,10 @@ All dependencies required to run the notebooks and experiments are listed in `re
 
 ## Notes
 This project investigates VBMC’s efficiency, stability, and performance across various likelihoods, highlighting the influence of GP design, acquisition strategy, and variational flexibility.
+
+
+## Example Posterior
+
+Below is an example of the final posterior obtained with VBMC, shown as an animation:
+
+![VBMC Posterior Animation](VBMC%20animation.gif)
