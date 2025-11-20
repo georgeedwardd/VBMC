@@ -85,11 +85,11 @@ def initialise(params_true, ll, d, lower, upper, n=10, k=2, key=None, fullsig=Tr
 
     # Initialise mixture parameters near the centre region
     key, subkey = jax.random.split(key)
-    mu_params = jax.random.uniform(subkey, (k, d)) -0.5 + (upper+lower)/2
+    mu_params = jax.random.uniform(subkey, (k, d))*3 - 1.5 + (upper+lower)/2
     if fullsig:
-        s_params = jnp.ones_like(mu_params)*jnp.max(upper-lower)/8
+        s_params = jnp.ones_like(mu_params)*jnp.max(upper-lower)/40
     else:
-        s_params = jnp.ones(k)*jnp.max(upper-lower)/8
+        s_params = jnp.ones(k)*jnp.max(upper-lower)/40
 
     logitweights = jnp.zeros(k)
 
@@ -267,8 +267,8 @@ def plot_plots(params, params_true, x_points, n_new,
     if d == 2:
         ax_ll = fig.add_subplot(gs[1])
         grid_size = 100
-        x = np.linspace(-3, 3, grid_size)
-        y = np.linspace(-3, 3, grid_size)
+        x = np.linspace(-4, 4, grid_size)
+        y = np.linspace(-4, 4, grid_size)
         X, Y = np.meshgrid(x, y)
         obs_grid = np.stack([X.ravel(), Y.ravel()], axis=-1)
 
@@ -320,8 +320,8 @@ def active_sample(x,y,hp_params,K_inv,
 
             acq = (t1**alpha)*(t2**beta)*jnp.exp(t3*gamma)
 
-            v_reg = 1e-3
-            reg_term1 = jnp.exp(-3*(v_reg/t1 - 1)*(t1<v_reg))
+            v_reg = 5e-4
+            reg_term1 = jnp.exp(-2*(v_reg/t1 - 1)*(t1<v_reg))
 
             acq = jnp.clip(acq*reg_term1, 1e-100, 1e100)
             return -float(acq.item())

@@ -1,24 +1,26 @@
-<<<<<<< HEAD
-Notebook goes through:
 
-MC integration
+# Variational Bayesian Monte Carlo (VBMC)
 
-Bayesain Quadrature for integration
+A reimplementation and analysis of the Variational Bayesian Monte Carlo algorithm, which combines Gaussian Process surrogates, Bayesian Quadrature, and Variational Inference to perform sample-efficient Bayesian inference when evaluating the log joint is expensive.
 
-1D gaussian process
+## Overview
+### Notebooks
+The notebooks included in this repository provide a practical walkthrough of the main ideas behind Variational Bayesian Monte Carlo. The first covers simple Gaussian Process (GP) regression examples to illustrate surrogate modelling and uncertainty quantification. The second demonstrates Bayesian Quadrature (BQ), showing how integrals over functions can be estimated probabilistically using a GP. The final notebook brings these ideas together in the full VBMC algorithm, combining GP modelling, quadrature-based ELBO estimation, and variational optimisation with active sampling. Together, they form a clear path from foundational concepts to a working VBMC implementation.
 
-2D gaussian process
+### Derivations
+The `derivations.ipynb` file contains informal, step-by-step outlines of the main mathematical results used throughout the project. The derivations focus on intuition and reasoning rather than full proof formality, providing a readable bridge between the mathematics and its implementation.
 
-1D VBMC example
-=======
-# MovieLens-Recommender
-A collaborative filtering movie recommender system built using the MovieLens 32M dataset.
+## Requirements
+All dependencies required to run the notebooks and experiments are listed in `requirements.txt`.
 
-### Data
-This notebook uses the MovieLens 32M dataset.
-Please place the dataset files (ratings.csv, movies.csv, etc.)
-in the same directory as the notebook before running it.
 
-Dataset source: https://grouplens.org/datasets/movielens/32m/
+## Features
+- Implemented in JAX with autodiff.
+- Rank-one GP updates and ARD kernels.
+- Warm-up hyperparameter sampling.
+- Initial sampling via Sobol sequences.
+- Active sampling via CMA-ES.
 
->>>>>>> 909206136b75393a16bd4f21738c7e061daa7a4e
+
+## Notes
+This project investigates VBMC’s efficiency, stability, and performance across various likelihoods, highlighting the influence of GP design, acquisition strategy, and variational flexibility.
