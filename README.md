@@ -1,33 +1,89 @@
+# Variational Bayesian Monte Carlo — From Scratch
 
-# Variational Bayesian Monte Carlo (VBMC)
+A ground-up implementation of **Variational Bayesian Monte Carlo (VBMC)**, built through a series of notebooks that develop each required component from first principles. The project begins with Gaussian Process regression, progresses through Bayesian Quadrature, and ends in a full VBMC implementation that performs tractable posterior inference under expensive likelihoods.
 
-A reimplementation and analysis of the Variational Bayesian Monte Carlo algorithm, which combines Gaussian Process surrogates, Bayesian Quadrature, and Variational Inference to perform sample-efficient Bayesian inference when evaluating the log joint is expensive.
+---
 
-## Overview
-### Notebooks
-The notebooks included in this repository provide a practical walkthrough of the main ideas behind Variational Bayesian Monte Carlo. The first covers simple Gaussian Process (GP) regression examples to illustrate surrogate modelling and uncertainty quantification. The second demonstrates Bayesian Quadrature (BQ), showing how integrals over functions can be estimated probabilistically using a GP. The final notebook brings these ideas together in the full VBMC algorithm, combining GP modelling, quadrature-based ELBO estimation, and variational optimisation with active sampling. Together, they form a clear path from foundational concepts to a working VBMC implementation.
+## Structure
 
-### Derivations
-The `derivations.ipynb` file contains informal, step-by-step outlines of the main mathematical results used throughout the project. The derivations focus on intuition and reasoning rather than full proof formality, providing a readable bridge between the mathematics and its implementation.
+```
+.
+├── notebooks/
+│   ├── 01_gaussian_process.ipynb          # GP regression & active learning
+│   ├── 02_quadrature_univariate.ipynb     # Bayesian Quadrature (1D)
+│   ├── 03_quadrature_multivariate.ipynb   # Bayesian Quadrature (multivariate)
+│   ├── 04_VBMC.ipynb                      # Full VBMC implementation (WIP)
+│   ├── gp_utils.py                        # GP inference utilities
+│   ├── quad_utils.py                      # Quadrature utilities
+│   └── vbmc_utils.py                      # VBMC components
+├── figures/
+│   ├── gp_animation.gif
+│   ├── bivariate_vbmc_animation.gif
+│   └── 4d_vbmc_animation.gif
+├── derivations.ipynb                      # Mathematical derivations
+├── VBMC_components.md                     # Annotated breakdown of VBMC internals
+└── requirements.txt
+```
 
-## Requirements
-All dependencies required to run the notebooks and experiments are listed in `requirements.txt`.
+---
+
+## Notebooks
+
+### 1 — Gaussian Process Regression
+
+Introduces GP regression from scratch in both the univariate and multivariate settings. Covers kernel functions, posterior inference, predictive uncertainty, and sequential active learning via a maximum-variance acquisition function. Rank-one kernel inverse updates are used for efficiency.
+
+<p align="center">
+  <img src="figures/gp_animation.gif" width="600"/>
+</p>
+
+---
+
+### 2 — Bayesian Quadrature (Univariate)
+
+Frames numerical integration as a problem of Bayesian inference. The integrand is modelled as a Gaussian Process, turning the integral itself into a random variable with a computable posterior mean and variance. Covers integration under Gaussian and Gaussian mixture input distributions, with comparison against Monte Carlo baselines.
+
+---
+
+### 3 — Bayesian Quadrature (Multivariate)
+
+Extends Bayesian Quadrature to higher dimensions, working directly with multivariate Gaussian mixture measures. Derives closed-form kernel expectations and computes posterior uncertainty for multivariate integrals, again validated against Monte Carlo estimates.
+
+---
+
+### 4 — Variational Bayesian Monte Carlo
+
+Brings all components together into a complete VBMC implementation. The algorithm jointly optimises a variational Gaussian mixture approximation to the posterior while refining a GP surrogate for the log-likelihood, selecting new evaluation points via an acquisition function that balances surrogate uncertainty, variational density, and expected improvement.
+
+The ELBO and ELCBO are tracked throughout to monitor convergence. The mixture structure adapts dynamically. Components are added and pruned as the approximation matures. A warm-up phase encourages broad initial exploration before transitioning to stable optimisation.
 
 
-## Features
-- Implemented in JAX with autodiff.
-- Rank-one GP updates and ARD kernels.
-- Warm-up hyperparameter sampling.
-- Initial sampling via Sobol sequences.
-- Active sampling via CMA-ES.
+<p align="center">
+  <img src="figures/4d_vbmc_animation.gif" width="900"/>
+</p>
 
+A detailed walkthrough of the internal components (initialisation, GP setup, ELBO construction, acquisition, and mixture adaptation) is provided in [`VBMC_components.md`](VBMC_components.md). Mathematical derivations supporting the quadrature results are collected in [`derivations.ipynb`](derivations.ipynb).
 
-## Notes
-This project investigates VBMC’s efficiency, stability, and performance across various likelihoods, highlighting the influence of GP design, acquisition strategy, and variational flexibility.
+---
 
+## Key Dependencies
 
-## Example Posterior
+| Package | Role |
+|---------|------|
+| `jax` | Automatic differentiation and array operations |
+| `emcee` | MCMC sampling for GP hyperparameters |
+| `cma` | CMA-ES optimiser for acquisition function |
 
-Below is an example of the final posterior obtained with VBMC, shown as an animation:
+Install all dependencies with:
 
-![VBMC Posterior Animation](VBMC%20animation.gif)
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Background
+
+VBMC ([Acerbi, 2018](https://arxiv.org/abs/1810.05558)) targets the common setting where the likelihood is expensive to evaluate and standard MCMC is impractical. It replaces direct likelihood evaluations with a GP surrogate and uses Bayesian Quadrature to compute the ELBO in closed form, enabling efficient variational inference with a very small number of likelihood calls.
+
+This implementation is built from scratch using JAX for all gradient-based optimisation and follows the structure of the original algorithm closely, with particular attention to the coupled feedback between the surrogate model, variational approximation, and active sampling strategy.
