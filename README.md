@@ -10,9 +10,9 @@ A ground-up implementation of **Variational Bayesian Monte Carlo (VBMC)**, built
 .
 ├── notebooks/
 │   ├── 01_gaussian_process.ipynb          # GP regression & active learning
-│   ├── 02_quadrature_univariate.ipynb     # Bayesian Quadrature (1D)
+│   ├── 02_quadrature_univariate.ipynb     # Bayesian Quadrature (univariate)
 │   ├── 03_quadrature_multivariate.ipynb   # Bayesian Quadrature (multivariate)
-│   ├── 04_VBMC.ipynb                      # Full VBMC implementation (WIP)
+│   ├── 04_VBMC.ipynb                      # Full VBMC implementation
 │   ├── gp_utils.py                        # GP inference utilities
 │   ├── quad_utils.py                      # Quadrature utilities
 │   └── vbmc_utils.py                      # VBMC components
